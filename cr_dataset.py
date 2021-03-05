@@ -2,12 +2,16 @@ import argparse
 from utils import *
 import selfies as sf
 
-def load_file(fname):
+def load_file(fname, augment):
     rxn_pairs = []
     with open(fname,"r") as f:
         for l in f.readlines():
             r,p=raw2pairs(l)
-            rxn_pairs.append( (r,p) )
+            if augment:
+                aug = augment_rxn(r,p)
+                rxn_pairs = rxn_pairs + aug 
+            else:
+                rxn_pairs.append( (r,p) )
     return rxn_pairs
 
 def write_smiles(rxn_pairs, out_fname):
@@ -45,10 +49,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str)
     parser.add_argument("--output", type=str)
+    parser.add_argument("--augment", type=int)
     
     args = parser.parse_args()
 
-    rp = load_file(args.input)
+    rp = load_file(args.input, args.augment == 1)
     write_smiles(rp, args.output)
     write_deepsmiles(rp, args.output)
     write_selfies(rp, args.output)

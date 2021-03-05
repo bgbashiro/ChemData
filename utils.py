@@ -2,6 +2,7 @@ import deepsmiles as ds
 import selfies as sf
 from rdkit import Chem
 import re
+import random
 
 def smi_tokenizer(smi):
     """
@@ -32,6 +33,28 @@ def raw2pairs(sm_line):
     reagents = [ strip_atom_numbering(mol_str) for mol_str in  reagents.split(".")]
     products = [ strip_atom_numbering(mol_str) for mol_str in  products.split(".")]
     return reagents, products
+
+def _augment(mollist):
+    r = random.random()
+    if r<0.5 and len(mollist)>1:
+        i = random.randint(0,len(mollist)-1)
+        j = random.randint(0,len(mollist)-1)
+        while j == i:
+            j = random.randint(0,len(mollist)-1)
+        mollist[i], mollist[j] = mollist[j],mollist[i]
+    new_mollist = []
+    for mol in mollist:
+        _mol = Chem.MolFromSmiles(mol)
+        mol = Chem.MolToSmiles(_mol, doRandom=True)
+        new_mollist.append(mol)
+    return new_mollist
+
+
+def augment_rxn(reactants, products):
+    pair_aug = [ (reactants,products) ]
+    for i in range(4):
+        pair_aug.append( (_augment(reactants), _augment(products)) ) 
+    return pair_aug
 
 def sm2ds(line):
     # Takes schwaller's preprocessed SMILES and turns them into deepSMILES
