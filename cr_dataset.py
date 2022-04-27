@@ -15,15 +15,13 @@ def load_file(fname, augment):
     return rxn_pairs
 
 def write_smiles(rxn_pairs, out_fname):
-    with open("sm."+out_fname+".src", "w") as out_src, \
-            open("sm."+out_fname+".tgt","w") as out_tgt:
+    with open(f"sm.{out_fname}.src", "w") as out_src, open(f"sm.{out_fname}.tgt", "w") as out_tgt:
         for r,p in rxn_pairs:
             out_src.write( smi_tokenizer( ".".join(r) ) + "\n")
             out_tgt.write( smi_tokenizer( ".".join(p) ) + "\n")
 
 def write_deepsmiles(rxn_pairs, out_fname):
-    with open("ds."+out_fname+".src", "w") as out_src, \
-            open("ds."+out_fname+".tgt","w") as out_tgt:
+    with open(f"ds.{out_fname}.src", "w") as out_src, open(f"ds.{out_fname}.tgt", "w") as out_tgt:
         for r,p in rxn_pairs:
             r = map(sm2ds, r)
             p = map(sm2ds, p)
@@ -31,8 +29,7 @@ def write_deepsmiles(rxn_pairs, out_fname):
             out_tgt.write( smi_tokenizer( ".".join(p) ) + "\n")
 
 def write_selfies(rxn_pairs, out_fname):
-    with open("sf."+out_fname+".src", "w") as out_src, \
-            open("sf."+out_fname+".tgt","w") as out_tgt:
+    with open(f"sf.{out_fname}.src", "w") as out_src, open(f"sf.{out_fname}.tgt", "w") as out_tgt:
         for r,p in rxn_pairs:
             r = map(sf.encoder, r)
             p = map(sf.encoder, p)

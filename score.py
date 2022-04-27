@@ -9,16 +9,17 @@ from utils import ds2sm,sf2sm
 
 def canonicalize_smiles(smiles):
     mol = Chem.MolFromSmiles(smiles)
-    if mol is not None:
-        return Chem.MolToSmiles(mol, isomericSmiles=True)
-    else:
-        return ''
+    return Chem.MolToSmiles(mol, isomericSmiles=True) if mol is not None else ''
 
 def get_rank(row, base, max_rank):
-    for i in range(1, max_rank+1):
-        if row['target'] == row['{}{}'.format(base, i)]:
-            return i
-    return 0
+    return next(
+        (
+            i
+            for i in range(1, max_rank + 1)
+            if row['target'] == row[f'{base}{i}']
+        ),
+        0,
+    )
 
 def main(opt):
     with open(opt.targets, 'r') as f:
@@ -29,7 +30,7 @@ def main(opt):
         elif opt.mol_format == "selfies":
             targets = [canonicalize_smiles(sf2sm(line)) for line in f.readlines()]
 
-    predictions = [[] for i in range(opt.beam_size)]
+    predictions = [[] for _ in range(opt.beam_size)]
 
     test_df = pd.DataFrame(targets)
     print(test_df.shape)
@@ -53,9 +54,11 @@ def main(opt):
     print(len(predictions))
     for i, preds in enumerate(predictions):
         print(len(preds))
-        test_df['prediction_{}'.format(i + 1)] = preds
-        test_df['canonical_prediction_{}'.format(i + 1)] = test_df['prediction_{}'.format(i + 1)].apply(
-            lambda x: canonicalize_smiles(x))
+        test_df[f'prediction_{i + 1}'] = preds
+        test_df[f'canonical_prediction_{i + 1}'] = test_df[
+            f'prediction_{i + 1}'
+        ].apply(lambda x: canonicalize_smiles(x))
+
 
     test_df['rank'] = test_df.apply(lambda row: get_rank(row, 'canonical_prediction_', opt.beam_size), axis=1)
 
@@ -63,7 +66,7 @@ def main(opt):
 
     for i in range(1, opt.beam_size+1):
         correct += (test_df['rank'] == i).sum()
-        invalid_smiles = (test_df['canonical_prediction_{}'.format(i)] == '').sum()
+        invalid_smiles = (test_df[f'canonical_prediction_{i}'] == '').sum()
         if opt.invalid_smiles:
             print('Top-{}: {:.1f}% || Invalid SMILES {:.2f}%'.format(i, correct/total*100,
                                                                      invalid_smiles/total*100))
