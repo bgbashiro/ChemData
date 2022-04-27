@@ -10,7 +10,7 @@ def smi_tokenizer(smi):
     """
     pattern =  r"(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
     regex = re.compile(pattern)
-    tokens = [token for token in regex.findall(smi)]
+    tokens = list(regex.findall(smi))
     # assert smi == ''.join(tokens)
     return ' '.join(tokens)
 
@@ -52,8 +52,7 @@ def _augment(mollist):
 
 def augment_rxn(reactants, products):
     pair_aug = [ (reactants,products) ]
-    for i in range(4):
-        pair_aug.append( (_augment(reactants), _augment(products)) ) 
+    pair_aug.extend((_augment(reactants), _augment(products)) for _ in range(4))
     return pair_aug
 
 def sm2ds(line):
@@ -86,10 +85,8 @@ def sm2sf(line):
 
 def sf2sm(line):
     words = line.split(".")
-    words = [ "[" + word.replace(" ", "][") + "]" for word in words ] 
-    new_line = []
-    for word in words: 
-        new_line.append( sf.decoder(word))
+    words = [ "[" + word.replace(" ", "][") + "]" for word in words ]
+    new_line = [sf.decoder(word) for word in words]
     new_line = ".".join(new_line)
     return new_line
 
